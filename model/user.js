@@ -14,7 +14,7 @@ const userSchema = Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  findhash: { type: String, unique: true}
+  findHash: { type: String, unique: true }
 });
 
 userSchema.methods.generatePasswordHash = function(password) {
@@ -31,7 +31,6 @@ userSchema.methods.generatePasswordHash = function(password) {
 
 userSchema.methods.comparePasswordHash = function(password) {
   debug('comparePasswordHash');
-
   return new Promise((resolve, reject) => {
     bcrypt.compare(password, this.password, (err, valid) => {
       if (err) return reject(err);
@@ -47,7 +46,7 @@ userSchema.methods.generateFindHash = function() {
   return new Promise((resolve, reject) => {
     let tries = 0;
 
-    _generateFindHash.call(this);
+  _generateFindHash.call(this);
 
     function _generateFindHash() {
       this.findHash = crypto.randomBytes(32).toString('hex');

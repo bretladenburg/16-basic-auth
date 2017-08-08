@@ -14,7 +14,7 @@ const exampleUser = {
   username: 'exampleUser',
   password: '1234',
   email: 'exampleUser@test.com'
-}
+};
 
 describe('Auth Routes', function() {
   describe('POST: /api/signup', function() {
@@ -27,11 +27,29 @@ describe('Auth Routes', function() {
 
       it('should return a token', done => {
         request.post(`${url}/api/signup`)
-        .send((err, res) => {
+        .send(exampleUser)
+        .end((err, res) => {
           if (err) return done(err);
           console.log('POST: /api/signup TOKEN:', res.text, '\n');
           expect(res.status).to.equal(200);
           expect(res.text).to.be.a('string');
+          done();
+        });
+      });
+    });
+
+    describe('with an invalid body', function() {
+      after( done => {
+        User.remove({})
+        .then( () => done())
+        .catch(done);
+      });
+
+      it('should return with a bad request', done => {
+        request.post(`${url}/api/signup`)
+        .send({ username: 'hello', password: ';kajdsfha'})
+        .end((err, res) => {
+          expect(res.status).to.equal(400);
           done();
         });
       });
@@ -63,6 +81,33 @@ describe('Auth Routes', function() {
           console.log('signed in user:', this.tempUser);
           console.log('GET: /api/signin TOKEN:', res.text);
           expect(res.status).to.equal(200);
+          done();
+        });
+      });
+    });
+
+    describe('with an invalid user', function() {
+      before( done => {
+        let user = new User(exampleUser);
+        user.generatePasswordHash(exampleUser.password)
+        .then( user => user.save())
+        .then( user => {
+          this.tempUser = user;
+          done();
+        });
+      });
+
+      after( done => {
+        User.remove({})
+        .then( () => done())
+        .catch(done);
+      });
+
+      it('should return an unauthorized user', done => {
+        request.get(`${url}/api/signin`)
+        .auth('invalidUser', '8967')
+        .end((err, res) => {
+          expect(res.status).to.equal(401);
           done();
         });
       });
